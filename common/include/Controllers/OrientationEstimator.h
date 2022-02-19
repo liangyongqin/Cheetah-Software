@@ -27,6 +27,8 @@ class CheaterOrientationEstimator : public GenericEstimator<T> {
 /*!
  * Estimator for the VectorNav IMU.  The VectorNav provides an orientation already and
  * we just return that.
+ *向量导航IMU的估计量。VectorNav已经提供了方向
+ *我们只是返回那个
  */
 template <typename T>
 class VectorNavOrientationEstimator : public GenericEstimator<T> {

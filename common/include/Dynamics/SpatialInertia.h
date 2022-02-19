@@ -1,5 +1,6 @@
 /*! @file SpatialInertia.h
- *  @brief Class representing spatial inertia tensors
+ *  @brief Class representing spatial inertia tensors 表示空间惯性张量的类
+ * 参考https://blog.csdn.net/weixin_41045354/article/details/105494616
  *
  */
 
@@ -17,18 +18,19 @@ using namespace ori;
 using namespace spatial;
 
 /*!
- * Representation of Rigid Body Inertia as a 6x6 Spatial Inertia Tensor
+ * Representation of Rigid Body Inertia as a 6x6 Spatial Inertia Tensor 用6x6空间惯性张量表示刚体惯性
  */
 template <typename T>
 class SpatialInertia {
  public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   /*!
-   * Construct spatial inertia from mass, center of mass, and 3x3 rotational
+   * Construct spatial inertia from mass, center of mass, and 3x3 rotational 从质量、质心和3 * 3的转动惯性来构造空间惯量
    * inertia
    */
   SpatialInertia(T mass, const Vec3<T>& com, const Mat3<T>& inertia) {
-    Mat3<T> cSkew = vectorToSkewMat(com);
+    Mat3<T> cSkew = vectorToSkewMat(com);//质心向量转反对称矩阵
+	
     _inertia.template topLeftCorner<3, 3>() =
         inertia + mass * cSkew * cSkew.transpose();
     _inertia.template topRightCorner<3, 3>() = mass * cSkew;
@@ -37,17 +39,17 @@ class SpatialInertia {
   }
 
   /*!
-   * Construct spatial inertia from 6x6 matrix
+   * Construct spatial inertia from 6x6 matrix 从6x6矩阵构造空间惯量
    */
   explicit SpatialInertia(const Mat6<T>& inertia) { _inertia = inertia; }
 
   /*!
-   * If no argument is given, zero.
+   * If no argument is given, zero. 如果没有给出参数，则为零。
    */
   SpatialInertia() { _inertia = Mat6<T>::Zero(); }
 
   /*!
-   * Construct spatial inertia from mass property vector
+   * Construct spatial inertia from mass property vector 从质量特性向量出发构造空间惯量
    */
   explicit SpatialInertia(const MassProperties<T>& a) {
     _inertia(0, 0) = a(4);
@@ -70,6 +72,7 @@ class SpatialInertia {
    * Linear Matrix Inequalities for Physically Consistent Inertial Parameter
    *   Identification: A Statistical Perspective on the Mass Distribution, by
    *   Wensing, Kim, Slotine
+   *由伪惯性构造空间惯性。这是描述在线性矩阵不等式的物理一致的惯性参数识别:一个统计角度的质量分布，由温辛，金，斯洛廷
    * @param P
    */
   explicit SpatialInertia(const Mat4<T>& P) {
@@ -87,6 +90,7 @@ class SpatialInertia {
 
   /*!
    * Convert spatial inertia to mass property vector
+   将空间惯性转化为质量特性矢量
    */
   MassProperties<T> asMassPropertyVector() {
     MassProperties<T> a;
@@ -98,6 +102,7 @@ class SpatialInertia {
 
   /*!
    * Get 6x6 spatial inertia
+   得到6x6的空间惯量
    */
   const Mat6<T>& getMatrix() const { return _inertia; }
 
@@ -106,12 +111,12 @@ class SpatialInertia {
   void addMatrix(const Mat6<T>& mat) { _inertia += mat; }
 
   /*!
-   * Get mass
+   * Get mass 得到质量
    */
   T getMass() { return _inertia(5, 5); }
 
   /*!
-   * Get center of mass location
+   * Get center of mass location 得到质心的位置
    */
   Vec3<T> getCOM() {
     T m = getMass();
@@ -121,7 +126,7 @@ class SpatialInertia {
   }
 
   /*!
-   * Get 3x3 rotational inertia
+   * Get 3x3 rotational inertia 得到3 * 3的转动惯量
    */
   Mat3<T> getInertiaTensor() {
     T m = getMass();

@@ -8,6 +8,7 @@ using Eigen::Matrix;
 using Eigen::Quaternionf;
 
 #include "common_types.h"
+/*方便计算连续状态空间方程将数组值转换*/
 class RobotState
 {
     public:

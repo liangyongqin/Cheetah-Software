@@ -15,12 +15,13 @@ using namespace ori;
 using namespace spatial;
 
 /*!
- * Build a FloatingBaseModel of the quadruped
+ * Build a FloatingBaseModel of the quadruped 建立一个四足动物的浮动模型
  */
 template <typename T>
 bool Quadruped<T>::buildModel(FloatingBaseModel<T>& model) {
-  // we assume the cheetah's body (not including rotors) can be modeled as a
-  // uniformly distributed box.
+  // we assume the cheetah's body (not including rotors) can be modeled as a uniformly distributed box.
+  //我们假设猎豹的身体(不包括转子)可以被建模为一个均匀分布的盒子。
+  
   Vec3<T> bodyDims(_bodyLength, _bodyWidth, _bodyHeight);
   // model.addBase(_bodyMass, Vec3<T>(0,0,0), rotInertiaOfBox(_bodyMass,
   // bodyDims));
@@ -111,7 +112,7 @@ bool Quadruped<T>::buildModel(FloatingBaseModel<T>& model) {
 }
 
 /*!
- * Build a FloatingBaseModel of the quadruped
+ * Build a FloatingBaseModel of the quadruped 建立一个四足动物的浮动模型
  */
 template <typename T>
 FloatingBaseModel<T> Quadruped<T>::buildModel() {
@@ -206,7 +207,7 @@ FloatingBaseModel<T> Quadruped<T>::buildModel() {
 }
 
 /*!
- * Flip signs of elements of a vector V depending on which leg it belongs to
+ * Flip signs of elements of a vector V depending on which leg it belongs to 一个向量V的元素的翻转符号取决于它属于哪条腿
  */
 template <typename T, typename T2>
 Vec3<T> withLegSigns(const Eigen::MatrixBase<T2>& v, int legID) {
@@ -227,7 +228,7 @@ Vec3<T> withLegSigns(const Eigen::MatrixBase<T2>& v, int legID) {
 }
 
 /*!
- * Build actuator models for a leg
+ * Build actuator models for a leg 为一条腿建立执行器模型
  */
 template <typename T>
 std::vector<ActuatorModel<T>> Quadruped<T>::buildActuatorModels() {

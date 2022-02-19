@@ -111,7 +111,7 @@ bool SafetyChecker<T>::checkPDesFoot() {
     }
   }
 
-  // Return true if all desired positions are safe
+  // Return true if all desired positions are safe 如果所有需要的位置都是安全的，则返回true
   return safePDesFoot;
 }
 

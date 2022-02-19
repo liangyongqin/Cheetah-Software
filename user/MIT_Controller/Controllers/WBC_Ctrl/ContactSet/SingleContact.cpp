@@ -1,15 +1,15 @@
 #include "SingleContact.hpp"
 #include <Utilities/Utilities_print.h>
 
-// [ Fx, Fy, Fz ]
+// [ Fx, Fy, Fz ] dim_contact_=3
 template <typename T>
 SingleContact<T>::SingleContact(const FloatingBaseModel<T>* robot, int pt)
     : ContactSpec<T>(3), _max_Fz(1500.), _contact_pt(pt), _dim_U(6) {
-  Contact::idx_Fz_ = 2;
+  Contact::idx_Fz_ = 2;//fz索引
   robot_sys_ = robot;
   Contact::Jc_ = DMat<T>(Contact::dim_contact_, cheetah::dim_config);
   Contact::JcDotQdot_ = DVec<T>::Zero(Contact::dim_contact_);
-  Contact::Uf_ = DMat<T>::Zero(_dim_U, Contact::dim_contact_);
+  Contact::Uf_ = DMat<T>::Zero(_dim_U, Contact::dim_contact_);//6*3
 
   T mu(0.4);
 
@@ -25,7 +25,7 @@ SingleContact<T>::SingleContact(const FloatingBaseModel<T>* robot, int pt)
   Contact::Uf_(4, 1) = -1.;
   Contact::Uf_(4, 2) = mu;
 
-  // Upper bound of normal force
+  // Upper bound of normal force 法向力的上限
   Contact::Uf_(5, 2) = -1.;
 }
 
@@ -57,6 +57,7 @@ template <typename T>
 bool SingleContact<T>::_UpdateUf() {
   return true;
 }
+
 
 template <typename T>
 bool SingleContact<T>::_UpdateInequalityVector() {

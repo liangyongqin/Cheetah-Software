@@ -1,9 +1,11 @@
 /*!
  * @file HardwareBridge.cpp
- * @brief Interface between robot code and robot hardware
+ * @brief Interface between robot code and robot hardware 机器人代码和机器人硬件之间的接口
  *
  * This class initializes the hardware of both robots and allows the robot
  * controller to access it
+ * 这个类初始化两个机器人的硬件并允许机器人
+ * 控制器来访问它
  */
 #ifdef linux 
 
@@ -25,6 +27,7 @@
 
 /*!
  * If an error occurs during initialization, before motors are enabled, print
+ * 如果在初始化过程中发生错误，在启动电机之前，打印错误并退出。
  * error and exit.
  * @param reason Error message string
  * @param printErrno If true, also print C errno
@@ -41,6 +44,7 @@ void HardwareBridge::initError(const char* reason, bool printErrno) {
 
 /*!
  * All hardware initialization steps that are common between Cheetah 3 and Mini Cheetah
+ * 所有的硬件初始化步骤都是在Cheetah 3和Mini Cheetah之间通用的
  */
 void HardwareBridge::initCommon() {
   printf("[HardwareBridge] Init stack\n");
@@ -52,19 +56,24 @@ void HardwareBridge::initCommon() {
   }
 
   printf("[HardwareBridge] Subscribe LCM\n");
-  _interfaceLCM.subscribe("interface", &HardwareBridge::handleGamepadLCM, this);
+  _interfaceLCM.subscribe("interface", &HardwareBridge::handleGamepadLCM, this);//订阅手柄信息
   _interfaceLCM.subscribe("interface_request",
-                          &HardwareBridge::handleControlParameter, this);
+                          &HardwareBridge::handleControlParameter, this);//订阅控制参数请求
 
   printf("[HardwareBridge] Start interface LCM handler\n");
-  _interfaceLcmThread = std::thread(&HardwareBridge::handleInterfaceLCM, this);
+  _interfaceLcmThread = std::thread(&HardwareBridge::handleInterfaceLCM, this);//开启线程
 }
 
 /*!
- * Run interface LCM
+ * Run interface LCM 运行接口lcm通信
  */
 void HardwareBridge::handleInterfaceLCM() {
   while (!_interfaceLcmQuit) _interfaceLCM.handle();
+  //其中lcm.handle()
+//LCM自动解码消息，再传给回调函数，回调函数可以识别消息类型。
+//因为回调函数在lcm.handle()方法中调度，所以不需要并发执行，这些都在一个单线程中完成。
+//调用lcm.handle()非常重要，函数会保持阻塞直到有任务需要做。
+
 }
 
 /*!
@@ -74,6 +83,9 @@ void HardwareBridge::handleInterfaceLCM() {
  * prevents the cheetah software from being swapped out.  If we do run out of
  * memory, the robot program will be killed by the OOM process killer (and
  * leaves a log) instead of just becoming unresponsive.
+ 写入堆栈上的一个16 KB缓冲区。如果我们的堆栈使用4K页面，这将确保在堆栈增长时不会出现页面错误。
+ 还有mlock与当前进程关联的所有页面，这可以防止猎豹软件被换出。
+ 如果内存用完，机器人程序将被OOM进程杀手杀死(并留下日志)，而不是变得没有响应。
  */
 void HardwareBridge::prefaultStack() {
   printf("[Init] Prefault stack...\n");
@@ -89,6 +101,7 @@ void HardwareBridge::prefaultStack() {
 
 /*!
  * Configures the scheduler for real time priority
+ * 为实时优先级配置调度程序
  */
 void HardwareBridge::setupScheduler() {
   printf("[Init] Setup RT Scheduler...\n");
@@ -100,24 +113,25 @@ void HardwareBridge::setupScheduler() {
 }
 
 /*!
- * LCM Handler for gamepad message
+ * LCM Handler for gamepad message 用于gamepad消息的LCM处理程序
  */
 void HardwareBridge::handleGamepadLCM(const lcm::ReceiveBuffer* rbuf,
                                       const std::string& chan,
                                       const gamepad_lcmt* msg) {
   (void)rbuf;
   (void)chan;
-  _gamepadCommand.set(msg);
+  _gamepadCommand.set(msg);//接受到的消息设置到手柄命令中
 }
 
 /*!
- * LCM Handler for control parameters
+ * LCM Handler for control parameters 控制参数的LCM处理程序 并响应
  */
 void HardwareBridge::handleControlParameter(
-    const lcm::ReceiveBuffer* rbuf, const std::string& chan,
-    const control_parameter_request_lcmt* msg) {
+    const lcm::ReceiveBuffer* rbuf, const std::string& chan,//频道名
+    const control_parameter_request_lcmt* msg) {//自定义消息类型
   (void)rbuf;
   (void)chan;
+  
   if (msg->requestNumber <= _parameter_response_lcmt.requestNumber) {
     // nothing to do!
     printf(
@@ -126,21 +140,24 @@ void HardwareBridge::handleControlParameter(
     // return;
   }
 
-  // sanity check
+  // sanity check 完整性检查
   s64 nRequests = msg->requestNumber - _parameter_response_lcmt.requestNumber;
+  
   if (nRequests != 1) {
     printf("[ERROR] Hardware bridge: we've missed %ld requests\n",
            nRequests - 1);
   }
 
   switch (msg->requestKind) {
+	  
     case (s8)ControlParameterRequestKind::SET_USER_PARAM_BY_NAME: {
+		
       if(!_userControlParameters) {
         printf("[Warning] Got user param %s, but not using user parameters!\n",
                (char*)msg->name);
       } else {
         std::string name((char*)msg->name);
-        ControlParameter& param = _userControlParameters->collection.lookup(name);
+        ControlParameter& param = _userControlParameters->collection.lookup(name);//控制参数获得
 
         // type check
         if ((s8)param._kind != msg->parameterKind) {
@@ -152,21 +169,23 @@ void HardwareBridge::handleControlParameter(
                   (ControlParameterValueKind)msg->parameterKind));
         }
 
-        // do the actual set
+        // do the actual set 做实际的设置
         ControlParameterValue v;
         memcpy(&v, msg->value, sizeof(v));
         param.set(v, (ControlParameterValueKind)msg->parameterKind);
 
         // respond:
         _parameter_response_lcmt.requestNumber =
-            msg->requestNumber;  // acknowledge that the set has happened
+            msg->requestNumber;  // acknowledge that the set has happened 承认设置已经发生
+			
         _parameter_response_lcmt.parameterKind =
-            msg->parameterKind;  // just for debugging print statements
+            msg->parameterKind;  // just for debugging print statements 仅用于调试打印语句
         memcpy(_parameter_response_lcmt.value, msg->value, 64);
         //_parameter_response_lcmt.value = _parameter_request_lcmt.value; // just
-        //for debugging print statements
+		
+        //for debugging print statements 用于调试打印语句
         strcpy((char*)_parameter_response_lcmt.name,
-               name.c_str());  // just for debugging print statements
+               name.c_str());  // just for debugging print statements 用于调试打印语句
         _parameter_response_lcmt.requestKind = msg->requestKind;
 
         printf("[User Control Parameter] set %s to %s\n", name.c_str(),
@@ -175,7 +194,7 @@ void HardwareBridge::handleControlParameter(
                    .c_str());
       }
     } break;
-
+//同上
     case (s8)ControlParameterRequestKind::SET_ROBOT_PARAM_BY_NAME: {
       std::string name((char*)msg->name);
       ControlParameter& param = _robotParams.collection.lookup(name);
@@ -198,10 +217,13 @@ void HardwareBridge::handleControlParameter(
       // respond:
       _parameter_response_lcmt.requestNumber =
           msg->requestNumber;  // acknowledge that the set has happened
+		  
       _parameter_response_lcmt.parameterKind =
           msg->parameterKind;  // just for debugging print statements
+		  
       memcpy(_parameter_response_lcmt.value, msg->value, 64);
       //_parameter_response_lcmt.value = _parameter_request_lcmt.value; // just
+	  
       //for debugging print statements
       strcpy((char*)_parameter_response_lcmt.name,
              name.c_str());  // just for debugging print statements
@@ -219,7 +241,7 @@ void HardwareBridge::handleControlParameter(
     }
     break;
   }
-  _interfaceLCM.publish("interface_response", &_parameter_response_lcmt);
+  _interfaceLCM.publish("interface_response", &_parameter_response_lcmt);//发送回应
 }
 
 
@@ -342,8 +364,8 @@ void MiniCheetahHardwareBridge::run() {
 }
 
 /*!
- * Receive RC with SBUS
- */
+ * Receive RC with SBUS 用SBUS接收RC
+ */ 
 void HardwareBridge::run_sbus() {
   if (_port > 0) {
     int x = receive_sbus(_port);
@@ -391,7 +413,9 @@ void MiniCheetahHardwareBridge::initHardware() {
   init_spi();
   _microstrainInit = _microstrainImu.tryInit(0, 921600);
 }
-
+/*!
+ * Initialize Cheetah3 specific hardware 初始化Cheetah3特定的硬件
+ */ 
 void Cheetah3HardwareBridge::initHardware() {
   _vectorNavData.quat << 1, 0, 0, 0;
   printf("[Cheetah 3 Hardware] Init vectornav\n");
@@ -410,6 +434,7 @@ void Cheetah3HardwareBridge::initHardware() {
  * Run Mini Cheetah SPI
  */
 void MiniCheetahHardwareBridge::runSpi() {
+	
   spi_command_t* cmd = get_spi_command();
   spi_data_t* data = get_spi_data();
 
@@ -421,7 +446,10 @@ void MiniCheetahHardwareBridge::runSpi() {
   _spiLcm.publish("spi_command", cmd);
 }
 
+
+//运行lcm获取和发送信息
 void Cheetah3HardwareBridge::runEcat() {
+	
   rt_ethercat_set_command(_tiBoardCommand);
   rt_ethercat_run();
   rt_ethercat_get_data(_tiBoardData);
@@ -429,6 +457,7 @@ void Cheetah3HardwareBridge::runEcat() {
   publishEcatLCM();
 }
 
+//发送自定义消息
 void Cheetah3HardwareBridge::publishEcatLCM() {
   for(int leg = 0; leg < 4; leg++) {
     ecatCmdLcm.x_des[leg] = _tiBoardCommand[leg].position_des[0];
@@ -498,7 +527,7 @@ void Cheetah3HardwareBridge::publishEcatLCM() {
 }
 
 /*!
- * Send LCM visualization data
+ * Send LCM visualization data 发送LCM可视化数据
  */
 void HardwareBridge::publishVisualizationLCM() {
   cheetah_visualization_lcmt visualization_data;
@@ -518,14 +547,17 @@ void HardwareBridge::publishVisualizationLCM() {
   _visualizationLCM.publish("main_cheetah_visualization", &visualization_data);
 }
 
+//Cheetah3HardwareBridge实例化
 Cheetah3HardwareBridge::Cheetah3HardwareBridge(RobotController *rc) : HardwareBridge(rc),  _ecatLCM(getLcmUrl(255)) {
 
 }
 
+//Cheetah3运行
 void Cheetah3HardwareBridge::run() {
-  initCommon();
-  initHardware();
+  initCommon();//订阅消息
+  initHardware();//初始化Cheetah3特定的硬件
 
+//等待参数加载
   printf("[Hardware Bridge] Loading parameters over LCM...\n");
   while (!_robotParams.isFullyInitialized()) {
     printf("[Hardware Bridge] Waiting for robot parameters...\n");
@@ -538,12 +570,14 @@ void Cheetah3HardwareBridge::run() {
       usleep(1000000);
     }
   }
-
+//开始运行
   printf("[Hardware Bridge] Got all parameters, starting up!\n");
 
+//实例化运行器 传入控制器，任务管理器 参数 名称
   _robotRunner =
       new RobotRunner(_controller, &taskManager, _robotParams.controller_dt, "robot-control");
 
+//之前获得相关参数给运行器
   _robotRunner->driverCommand = &_gamepadCommand;
   _robotRunner->tiBoardData = _tiBoardData;
   _robotRunner->tiBoardCommand = _tiBoardCommand;
@@ -553,23 +587,24 @@ void Cheetah3HardwareBridge::run() {
   _robotRunner->cheetahMainVisualization = &_mainCheetahVisualization;
   _robotRunner->vectorNavData = &_vectorNavData;
 
+//初始化运行器 
   _robotRunner->init();
   _firstRun = false;
 
   // init control thread
 
-  statusTask.start();
+  statusTask.start();//？？ 有问题这个
 
   rt_ethercat_init();
-  // Ecat Task start
+  // Ecat Task start 自定义消息传输任务开始
   PeriodicMemberFunction<Cheetah3HardwareBridge> ecatTask(
-      &taskManager, .001, "ecat", &Cheetah3HardwareBridge::runEcat, this);
+      &taskManager, .001, "ecat", &Cheetah3HardwareBridge::runEcat, this);//任务管理器  时间间隔1khz 回调函数（类的成员函数），对象
   ecatTask.start();
 
-  // robot controller start
+  // robot controller start 机器人控制器开始
   _robotRunner->start();
 
-  // visualization start
+  // visualization start 可视化开始 同上
   PeriodicMemberFunction<Cheetah3HardwareBridge> visualizationLCMTask(
       &taskManager, .0167, "lcm-vis",
       &MiniCheetahHardwareBridge::publishVisualizationLCM, this);
@@ -581,7 +616,7 @@ void Cheetah3HardwareBridge::run() {
 //      &taskManager, .005, "rc_controller", &HardwareBridge::run_sbus, this);
 //  sbusTask.start();
 
-
+//主循环 定时打印任务状态
   for (;;) {
     usleep(100000);
     taskManager.printStatus();

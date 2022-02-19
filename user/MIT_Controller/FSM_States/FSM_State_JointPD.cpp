@@ -39,11 +39,13 @@ void FSM_State_JointPD<T>::onEnter() {
 }
 
 /**
- * Calls the functions to be executed on each control loop iteration.
+ * C
+ * 在每个控制循环迭代中调用要执行的函数。
  */
 template <typename T>
 void FSM_State_JointPD<T>::run() {
   // This is just a test, should be running whatever other code you want
+  这只是一个测试，应该运行您想要的任何其他代码
   Vec3<T> qDes;
   qDes << 0, -1.052, 2.63;
   Vec3<T> qdDes;

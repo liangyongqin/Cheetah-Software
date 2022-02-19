@@ -27,7 +27,9 @@ This build process builds the common library, robot code, and simulator. If you 
 
 To test the common library, run `common/test-common`. To run the robot code, run `robot/robot`. To run the simulator, run `sim/sim`.
 
-Part of this build process will automatically download the gtest software testing framework and sets it up. After it is done building, it will produce a `libbiomimetics.a` static library and an executable `test-common`.  Run the tests with `common/test-common`. This output should hopefully end with
+Part of this build process will automatically download the gtest software testing framework and sets it up. 
+After it is done building, it will produce a `libbiomimetics.a` static library and an executable `test-common`.  
+Run the tests with `common/test-common`. This output should hopefully end with
 
 ```
 [----------] Global test environment tear-down

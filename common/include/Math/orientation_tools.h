@@ -30,7 +30,7 @@ static constexpr double quaternionDerviativeStabilization = 0.1;
 enum class CoordinateAxis { X, Y, Z };
 
 /*!
- * Convert radians to degrees
+ * Convert radians to degrees 转化弧度到度数
  */
 template <typename T>
 T rad2deg(T rad) {
@@ -54,6 +54,9 @@ T deg2rad(T deg) {
  * Compute rotation matrix for coordinate transformation. Note that
  * coordinateRotation(CoordinateAxis:X, .1) * v will rotate v by -.1 radians -
  * this transforms into a frame rotated by .1 radians!.
+ * 计算坐标变换的旋转矩阵。请注意,
+ * coordinateRotation(CoordinateAxis:X, .1) * v将v旋转-0.1弧度-
+ * 转换成一个旋转了1弧度的帧!
  */
 template <typename T>
 Mat3<T> coordinateRotation(CoordinateAxis axis, T theta) {
@@ -75,6 +78,9 @@ Mat3<T> coordinateRotation(CoordinateAxis axis, T theta) {
   return R;
 }
 
+/*!
+ * 反对称矩阵 叉乘用
+ */
 template<typename T>
 Mat3<typename T::Scalar> crossMatrix(const Eigen::MatrixBase<T>& v) {
   static_assert(T::ColsAtCompileTime == 1 && T::RowsAtCompileTime == 3,
@@ -87,7 +93,7 @@ Mat3<typename T::Scalar> crossMatrix(const Eigen::MatrixBase<T>& v) {
 }
 
 /*!
- * Go from rpy to rotation matrix.
+ * Go from rpy to rotation matrix.从欧拉角转矩阵
  */
 template <typename T>
 Mat3<typename T::Scalar> rpyToRotMat(const Eigen::MatrixBase<T>& v) {
@@ -100,7 +106,7 @@ Mat3<typename T::Scalar> rpyToRotMat(const Eigen::MatrixBase<T>& v) {
 }
 
 /*!
- * Convert a 3x1 vector to a skew-symmetric 3x3 matrix
+ * Convert a 3x1 vector to a skew-symmetric 3x3 matrix 向量转反对称阵
  */
 template <typename T>
 Mat3<typename T::Scalar> vectorToSkewMat(const Eigen::MatrixBase<T>& v) {
@@ -112,7 +118,7 @@ Mat3<typename T::Scalar> vectorToSkewMat(const Eigen::MatrixBase<T>& v) {
 }
 
 /*!
- * Put the skew-symmetric component of 3x3 matrix m into a 3x1 vector
+ * Put the skew-symmetric component of 3x3 matrix m into a 3x1 vector 反对称阵转向量
  */
 template <typename T>
 Vec3<typename T::Scalar> matToSkewVec(const Eigen::MatrixBase<T>& m) {
@@ -123,7 +129,7 @@ Vec3<typename T::Scalar> matToSkewVec(const Eigen::MatrixBase<T>& m) {
 }
 
 /*!
- * Convert a coordinate transformation matrix to an orientation quaternion.
+ * Convert a coordinate transformation matrix to an orientation quaternion. 将坐标变换矩阵转换为方向四元数
  */
 template <typename T>
 Quat<typename T::Scalar> rotationMatrixToQuaternion(
@@ -165,6 +171,8 @@ Quat<typename T::Scalar> rotationMatrixToQuaternion(
  * Convert a quaternion to a rotation matrix.  This matrix represents a
  * coordinate transformation into the frame which has the orientation specified
  * by the quaternion
+ *将四元数转换为旋转矩阵。这个矩阵表示
+ *坐标转换为指定方向的具有指定方向的坐标系 通过四元数
  */
 template <typename T>
 Mat3<typename T::Scalar> quaternionToRotationMatrix(
@@ -240,8 +248,8 @@ Vec3<typename T::Scalar> rotationMatrixToRPY(const Eigen::MatrixBase<T>& R) {
   return rpy;
 }
 /*!
- * Quaternion derivative calculation, like rqd(q, omega) in MATLAB.
- * the omega is expressed in body frame
+ * Quaternion derivative calculation, like rqd(q, omega) in MATLAB. 四元数导数的计算
+ * the omega is expressed in body frame 角速度在身体框架中表示
  * @param q
  * @param omega
  * @return
@@ -266,7 +274,7 @@ Quat<typename T::Scalar> quatDerivative(const Eigen::MatrixBase<T>& q,
 }
 
 /*!
- * Take the product of two quaternions
+ * Take the product of two quaternions 取两个四元数的乘积
  */
 template <typename T>
 Quat<typename T::Scalar> quatProduct(const Eigen::MatrixBase<T>& q1,
@@ -283,7 +291,7 @@ Quat<typename T::Scalar> quatProduct(const Eigen::MatrixBase<T>& q1,
 }
 
 /*!
- * Compute new quaternion given:
+ * Compute new quaternion given://根据角速度计算新的四元数
  * @param quat The old quaternion
  * @param omega The angular velocity (IN INERTIAL COORDINATES!)
  * @param dt The timestep

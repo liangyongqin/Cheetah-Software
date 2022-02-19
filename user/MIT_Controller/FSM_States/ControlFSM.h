@@ -1,12 +1,17 @@
 #ifndef CONTROLFSM_H
 #define CONTROLFSM_H
-
+/*MIT-Cheetah Software
+**             Email:@qq.com   QQ:1370780559
+**---------------------------------------------------------
+**  Description: 此文件注释由本人完成，仅为个人理解,本人水平有限，还请见谅
+**  interpreter     : NaCl
+*/
 #include <iostream>
 
-// Contains all of the control related data
+// Contains all of the control related data 包含所有与控制相关的数据
 #include "ControlFSMData.h"
 
-// Checks the robot state and commands for safety
+// Checks the robot state and commands for safety 检查机器人状态和安全命令
 #include "SafetyChecker.h"
 
 // FSM States
@@ -23,7 +28,7 @@
 #include "../FSM_States/FSM_State_FrontJump.h"
 
 /**
- * Enumerate all of the operating modes
+ * Enumerate all of the operating modes 枚举所有操作模式
  */
 enum class FSM_OperatingMode { 
   NORMAL, TRANSITIONING, ESTOP, EDAMP };
@@ -69,43 +74,43 @@ class ControlFSM {
              VisualizationData* visualizationData,
              MIT_UserParameters* userParameters);
 
-  // Initializes the Control FSM instance
+  // Initializes the Control FSM instance  初始化有限状态机
   void initialize();
 
-  // Runs the FSM logic and handles the state transitions and normal runs
+  // Runs the FSM logic and handles the state transitions and normal runs  运行FSM逻辑，处理状态转换和正常运行
   void runFSM();
 
-  // This will be removed and put into the SafetyChecker class
-  FSM_OperatingMode safetyPreCheck();
+  // This will be removed and put into the SafetyChecker class 这将被删除并放入SafetyChecker类
+  FSM_OperatingMode safetyPreCheck(); 
 
   //
   FSM_OperatingMode safetyPostCheck();
 
-  // Gets the next FSM_State from the list of created states when requested
+  // Gets the next FSM_State from the list of created states when requested 从请求时创建的状态列表中获取下一个FSM_State
   FSM_State<T>* getNextState(FSM_StateName stateName);
 
-  // Prints the current FSM status
+  // Prints the current FSM status 打印当前状态
   void printInfo(int opt);
 
-  // Contains all of the control related data
+  // Contains all of the control related data 包含所有控制相关数据
   ControlFSMData<T> data;
 
-  // FSM state information
-  FSM_StatesList<T> statesList;  // holds all of the FSM States
-  FSM_State<T>* currentState;    // current FSM state
-  FSM_State<T>* nextState;       // next FSM state
-  FSM_StateName nextStateName;   // next FSM state name
+  // FSM state information  状态信息
+  FSM_StatesList<T> statesList;  // holds all of the FSM States 保存所有状态
+  FSM_State<T>* currentState;    // current FSM state 当前状态
+  FSM_State<T>* nextState;       // next FSM state 下一个状态
+  FSM_StateName nextStateName;   // next FSM state name 下一个状态名
 
-  // Checks all of the inputs and commands for safety
+  // Checks all of the inputs and commands for safety  检查所有输入和命令是否安全
   SafetyChecker<T>* safetyChecker;
 
   TransitionData<T> transitionData;
 
  private:
-  // Operating mode of the FSM
+  // Operating mode of the FSM  FSM的工作模式
   FSM_OperatingMode operatingMode;
 
-  // Choose how often to print info, every N iterations
+  // Choose how often to print info, every N iterations 控制打印频率
   int printNum = 10000;  // N*(0.001s) in simulation time
 
   // Track the number of iterations since last info print

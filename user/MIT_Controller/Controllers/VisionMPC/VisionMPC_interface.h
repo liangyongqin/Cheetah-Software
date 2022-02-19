@@ -8,30 +8,35 @@
 #else
 #define EXTERNC
 #endif
-
-struct vision_mpc_problem_setup
+/*MIT-Cheetah Software
+**             Email:@qq.com   QQ:1370780559
+**---------------------------------------------------------
+**  Description: 此文件注释由本人完成，仅为个人理解,本人水平有限，还请见谅
+**  interpreter     : NaCl
+*/
+struct vision_mpc_problem_setup//mpc参数 
 {
-  float dt;
-  float mu;
-  float f_max;
-  int horizon;
+  float dt;//时间
+  float mu;//摩擦系数
+  float f_max;//最大力
+  int horizon;//分段数
 };
 
 struct vision_mpc_update_data_t
 {
-  float p[3];
-  float v[3];
-  float q[4];
-  float w[3];
-  float r[12];
-  float yaw;
-  float weights[12];
-  float traj[12*V_MAX_GAIT_SEGMENTS];
-  float alpha;
-  unsigned char gait[V_MAX_GAIT_SEGMENTS];
-  unsigned char hack_pad[1000];
-  int max_iterations;
-  float x_drag;
+  float p[3];//位置
+  float v[3];//速度
+  float q[4];//四元数
+  float w[3];//角速度
+  float r[12];//com到足端向量
+  float yaw;//偏航角
+  float weights[12];//权重
+  float traj[12*V_MAX_GAIT_SEGMENTS];//参考轨迹 最大一次性V_MAX_GAIT_SEGMENTS
+  float alpha;//mpc参数 K 式（31）
+  unsigned char gait[V_MAX_GAIT_SEGMENTS];//步态 脚是否悬空
+  unsigned char hack_pad[1000];//无用
+  int max_iterations;//最大迭代次数
+  float x_drag;//不清楚
 };
 
 EXTERNC void vision_setup_problem(double dt, int horizon, double mu, double f_max);

@@ -1,6 +1,6 @@
 /*!
  * @file JPosInitializer.h
- * @brief Controller to initialize the position of the legs on power-on
+ * @brief Controller to initialize the position of the legs on power-on 初始化开机时腿的位置
  */
 
 #ifndef JPOS_INITIALIZER

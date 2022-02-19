@@ -3,7 +3,13 @@
 
 #include <eigen3/Eigen/Dense>
 #include "../convexMPC/common_types.h"
-
+/*MIT-Cheetah Software
+**             Email:@qq.com   QQ:1370780559
+**---------------------------------------------------------
+**  Description: 此文件注释由本人完成，仅为个人理解,本人水平有限，还请见谅
+**  interpreter     : NaCl
+*/
+/*方便计算连续状态空间方程将数组值转换*/
 using Eigen::Matrix;
 using Eigen::Quaternionf;
 

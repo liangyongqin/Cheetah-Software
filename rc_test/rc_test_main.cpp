@@ -4,7 +4,7 @@
 
 #include "rt/rt_sbus.h"
 #include "rt/rt_rc_interface.h"
-
+//遥控器测试
 static struct {
  double     mode;
  double     impedance_scale;

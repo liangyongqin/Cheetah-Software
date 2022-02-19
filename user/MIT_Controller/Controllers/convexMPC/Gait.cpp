@@ -2,20 +2,20 @@
 
 // Offset - Duration Gait
 OffsetDurationGait::OffsetDurationGait(int nSegment, Vec4<int> offsets, Vec4<int> durations, const std::string &name) :
-  _offsets(offsets.array()),
-  _durations(durations.array()),
-  _nIterations(nSegment)
+  _offsets(offsets.array()),//相位差
+  _durations(durations.array()),//支撑时间
+  _nIterations(nSegment)//步态周期分段数
 {
 
   _name = name;
-  // allocate memory for MPC gait table
+  // allocate memory for MPC gait table 为MPC步态表分配内存
   _mpc_table = new int[nSegment * 4];
 
-  _offsetsFloat = offsets.cast<float>() / (float) nSegment;
-  _durationsFloat = durations.cast<float>() / (float) nSegment;
+  _offsetsFloat = offsets.cast<float>() / (float) nSegment; //对应步态的腿之间相位差
+  _durationsFloat = durations.cast<float>() / (float) nSegment;//对应步态支撑持续时间在整个周期百分比
 
-  _stance = durations[0];
-  _swing = nSegment - durations[0];
+  _stance = durations[0];//支撑持续时间 用整个过程的分段计数
+  _swing = nSegment - durations[0];//摆动持续时间 同上
 }
 
 MixedFrequncyGait::MixedFrequncyGait(int nSegment, Vec4<int> periods, float duty_cycle, const std::string &name) {
@@ -37,18 +37,18 @@ MixedFrequncyGait::~MixedFrequncyGait() {
 }
 
 Vec4<float> OffsetDurationGait::getContactState() {
-  Array4f progress = _phase - _offsetsFloat;
+  Array4f progress = _phase - _offsetsFloat; //progress每条腿在整个步态周期的位置 offest是相位差补偿
 
   for(int i = 0; i < 4; i++)
   {
-    if(progress[i] < 0) progress[i] += 1.;
-    if(progress[i] > _durationsFloat[i])
+    if(progress[i] < 0) progress[i] += 1.; 
+    if(progress[i] > _durationsFloat[i]) //相位大于支撑结束相位，非支撑状态
     {
       progress[i] = 0.;
     }
     else
     {
-      progress[i] = progress[i] / _durationsFloat[i];
+      progress[i] = progress[i] / _durationsFloat[i]; //相位在支撑相中的百分比
     }
   }
 
@@ -56,6 +56,7 @@ Vec4<float> OffsetDurationGait::getContactState() {
   return progress.matrix();
 }
 
+//原理同上
 Vec4<float> MixedFrequncyGait::getContactState() {
   Array4f progress = _phase;
 
@@ -72,6 +73,7 @@ Vec4<float> MixedFrequncyGait::getContactState() {
   return progress.matrix();
 }
 
+//原理同上
 Vec4<float> OffsetDurationGait::getSwingState()
 {
   Array4f swing_offset = _offsetsFloat + _durationsFloat;
@@ -86,17 +88,18 @@ Vec4<float> OffsetDurationGait::getSwingState()
     if(progress[i] < 0) progress[i] += 1.f;
     if(progress[i] > swing_duration[i])
     {
-      progress[i] = 0.;
+      progress[i] = 0.; //相位大于摆动结束相位，非摆动状态
     }
     else
     {
-      progress[i] = progress[i] / swing_duration[i];
-    }
+      progress[i] = progress[i] / swing_duration[i];//相位在摆动相中的百分比
+    } 
   }
 
   //printf("swing state: %.3f %.3f %.3f %.3f\n", progress[0], progress[1], progress[2], progress[3]);
   return progress.matrix();
 }
+
 
 Vec4<float> MixedFrequncyGait::getSwingState() {
 
@@ -114,7 +117,8 @@ Vec4<float> MixedFrequncyGait::getSwingState() {
   return progress.matrix();
 }
 
-
+//为mpc准备足端接触信息 从当前时刻预测之后一个步态周期的接触信息
+//原理基本同上
 int* OffsetDurationGait::getMpcTable()
 {
 
@@ -126,7 +130,8 @@ int* OffsetDurationGait::getMpcTable()
     for(int j = 0; j < 4; j++)
     {
       if(progress[j] < 0) progress[j] += _nIterations;
-      if(progress[j] < _durations[j])
+	  
+      if(progress[j] < _durations[j]) //在接触时间内 
         _mpc_table[i*4 + j] = 1;
       else
         _mpc_table[i*4 + j] = 0;
@@ -161,8 +166,11 @@ int* MixedFrequncyGait::getMpcTable() {
 }
 
 void OffsetDurationGait::setIterations(int iterationsPerMPC, int currentIteration)
-{
+{	//细分为 nMPC_segments（10）个时间步 参考（2） A.Experimental Setup
+//当前在第几个步态分段中 0~9
   _iteration = (currentIteration / iterationsPerMPC) % _nIterations;
+  //当前在整个步态周期百分比 一个步态周期为 nMPC_segments（10） 个mpc周期
+  //               当前为站立			重复计数用									整个周期长度
   _phase = (float)(currentIteration % (iterationsPerMPC * _nIterations)) / (float) (iterationsPerMPC * _nIterations);
 }
 
@@ -178,6 +186,7 @@ void MixedFrequncyGait::setIterations(int iterationsBetweenMPC, int currentItera
 
 }
 
+//跳跃用
 int OffsetDurationGait::getCurrentGaitPhase() {
   return _iteration;
 }
@@ -186,15 +195,17 @@ int MixedFrequncyGait::getCurrentGaitPhase() {
   return 0;
 }
 
+//获得摆动持续时间长度
 float OffsetDurationGait::getCurrentSwingTime(float dtMPC, int leg) {
   (void)leg;
   return dtMPC * _swing;
 }
 
 float MixedFrequncyGait::getCurrentSwingTime(float dtMPC, int leg) {
+	
   return dtMPC * (1. - _duty_cycle) * _periods[leg];
 }
-
+//获得支撑持续时间长度
 float OffsetDurationGait::getCurrentStanceTime(float dtMPC, int leg) {
   (void) leg;
   return dtMPC * _stance;

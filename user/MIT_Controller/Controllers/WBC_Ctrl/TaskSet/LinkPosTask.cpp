@@ -12,8 +12,8 @@ LinkPosTask<T>::LinkPosTask(const FloatingBaseModel<T>* robot, int link_idx,
       robot_sys_(robot),
       link_idx_(link_idx),
       virtual_depend_(virtual_depend) {
-  TK::Jt_ = DMat<T>::Zero(TK::dim_task_, cheetah::dim_config);
-  TK::JtDotQdot_ = DVec<T>::Zero(TK::dim_task_);
+  TK::Jt_ = DMat<T>::Zero(TK::dim_task_, cheetah::dim_config);//3*18矩阵
+  TK::JtDotQdot_ = DVec<T>::Zero(TK::dim_task_);//3维向量
 
   _Kp = DVec<T>::Constant(TK::dim_task_, 100.);
   _Kd = DVec<T>::Constant(TK::dim_task_, 5.);
@@ -31,14 +31,14 @@ bool LinkPosTask<T>::_UpdateCommand(const void* pos_des, const DVec<T>& vel_des,
 
   link_pos = robot_sys_->_pGC[link_idx_];
 
-  // X, Y, Z
+  // X, Y, Z 每条腿的参数 从mpc传来 频率500Hz 为3维向量
   for (int i(0); i < 3; ++i) {
     TK::pos_err_[i] = _Kp_kin[i]* ( (*pos_cmd)[i] - link_pos[i] );
     TK::vel_des_[i] = vel_des[i];
     TK::acc_des_[i] = acc_des[i];
   }
 
-  // Op acceleration command
+  // Op acceleration command 操作加速度命令处理 
   for (size_t i(0); i < TK::dim_task_; ++i) {
     TK::op_cmd_[i] =
         _Kp[i] * TK::pos_err_[i] +

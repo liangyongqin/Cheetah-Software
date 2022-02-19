@@ -1,6 +1,11 @@
 #ifndef CHEETAH_SOFTWARE_CONVEXMPCLOCOMOTION_H
 #define CHEETAH_SOFTWARE_CONVEXMPCLOCOMOTION_H
-
+/*MIT-Cheetah Software
+**             Email:@qq.com   QQ:1370780559
+**---------------------------------------------------------
+**  Description: 此文件注释由本人完成，仅为个人理解,本人水平有限，还请见谅
+**  interpreter     : NaCl
+*/
 #include <Controllers/FootSwingTrajectory.h>
 #include <FSM_States/ControlFSMData.h>
 #include <SparseCMPC/SparseCMPC.h>
@@ -90,14 +95,14 @@ public:
   void run(ControlFSMData<T>& data);
   bool currently_jumping = false;
 
-  Vec3<float> pBody_des;
+  Vec3<float> pBody_des;//期望 世界下？
   Vec3<float> vBody_des;
   Vec3<float> aBody_des;
 
   Vec3<float> pBody_RPY_des;
   Vec3<float> vBody_Ori_des;
 
-  Vec3<float> pFoot_des[4];
+  Vec3<float> pFoot_des[4];//足端期望 足端轨迹跟踪用 
   Vec3<float> vFoot_des[4];
   Vec3<float> aFoot_des[4];
 
@@ -107,7 +112,7 @@ public:
 
 private:
   void _SetupCommand(ControlFSMData<float> & data);
-
+////期望 机体下
   float _yaw_turn_rate;
   float _yaw_des;
 
@@ -119,42 +124,44 @@ private:
 
   // High speed running
   //float _body_height = 0.34;
-  float _body_height = 0.29;
+  float _body_height = 0.29;//机身高度
 
   float _body_height_running = 0.29;
   float _body_height_jumping = 0.36;
 
   void recompute_timing(int iterations_per_mpc);
-  void updateMPCIfNeeded(int* mpcTable, ControlFSMData<float>& data, bool omniMode);
-  void solveDenseMPC(int *mpcTable, ControlFSMData<float> &data);
-  void solveSparseMPC(int *mpcTable, ControlFSMData<float> &data);
-  void initSparseMPC();
-  int iterationsBetweenMPC;
-  int horizonLength;
-  int default_iterations_between_mpc;
-  float dt;
-  float dtMPC;
-  int iterationCounter = 0;
-  Vec3<float> f_ff[4];
-  Vec4<float> swingTimes;
+  void updateMPCIfNeeded(int* mpcTable, ControlFSMData<float>& data, bool omniMode);//更新MPC数据
+  void solveDenseMPC(int *mpcTable, ControlFSMData<float> &data);//解MPC
+  void solveSparseMPC(int *mpcTable, ControlFSMData<float> &data);//解稀疏MPC
+  void initSparseMPC();//初始化稀疏MPC
+  int iterationsBetweenMPC;//迭代次数在mpc之间
+  int horizonLength;//mpc分段数，即预测多少个mpc周期长的输入
+  int default_iterations_between_mpc;//默认迭代次数在mpc之间
+  float dt;//一般频率下时间间隔
+  float dtMPC;//mpc运算周期
+  int iterationCounter = 0;//频率控制计数器
+  Vec3<float> f_ff[4];//四脚力输出
+  Vec4<float> swingTimes;//摆动时间 
   FootSwingTrajectory<float> footSwingTrajectories[4];
   OffsetDurationGait trotting, bounding, pronking, jumping, galloping, standing, trotRunning, walking, walking2, pacing;
   MixedFrequncyGait random, random2;
   Mat3<float> Kp, Kd, Kp_stance, Kd_stance;
-  bool firstRun = true;
-  bool firstSwing[4];
-  float swingTimeRemaining[4];
+  bool firstRun = true;//首次运行
+  bool firstSwing[4];//首次摆动
+  
+  float swingTimeRemaining[4];//剩余摆动时间
+  
   float stand_traj[6];
-  int current_gait;
-  int gaitNumber;
+  int current_gait;//当前步态
+  int gaitNumber;//步态
 
-  Vec3<float> world_position_desired;
-  Vec3<float> rpy_int;
+  Vec3<float> world_position_desired;//机体期望位置
+  Vec3<float> rpy_int;//初始欧拉角
   Vec3<float> rpy_comp;
   float x_comp_integral = 0;
-  Vec3<float> pFoot[4];
+  Vec3<float> pFoot[4];//四足端坐标
   CMPC_Result<float> result;
-  float trajAll[12*36];
+  float trajAll[12*36];//mpc格式储存轨迹
 
   MIT_UserParameters* _parameters = nullptr;
   CMPC_Jump jump_state;

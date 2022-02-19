@@ -10,8 +10,8 @@
 
 #define K_NUM_LEGS 4
 
-problem_setup problem_configuration;
-u8 gait_data[K_MAX_GAIT_SEGMENTS];
+problem_setup problem_configuration; //mpc参数 ：时间 摩擦系数 最大力 分段数
+u8 gait_data[K_MAX_GAIT_SEGMENTS]; 
 pthread_mutex_t problem_cfg_mt;
 pthread_mutex_t update_mt;
 update_data_t update;
@@ -56,16 +56,17 @@ void setup_problem(double dt, int horizon, double mu, double f_max)
 
   //pthread_mutex_lock(&problem_cfg_mt);
 
-  problem_configuration.horizon = horizon;
-  problem_configuration.f_max = f_max;
-  problem_configuration.mu = mu;
-  problem_configuration.dt = dt;
+  problem_configuration.horizon = horizon;//分段数
+  problem_configuration.f_max = f_max;//最大力
+  problem_configuration.mu = mu;//摩擦系数
+  problem_configuration.dt = dt;//时间
 
   //pthread_mutex_unlock(&problem_cfg_mt);
-  resize_qp_mats(horizon);
+  resize_qp_mats(horizon);//分配内存，重置Qp矩阵
 }
 
-//inline to motivate gcc to unroll the loop in here.
+//inline to motivate gcc to unroll the loop in here.数组转换
+//数组类型转换 matlab 转c++
 inline void mfp_to_flt(flt* dst, mfp* src, s32 n_items)
 {
   for(s32 i = 0; i < n_items; i++)
@@ -77,14 +78,14 @@ inline void mint_to_u8(u8* dst, mint* src, s32 n_items)
   for(s32 i = 0; i < n_items; i++)
     *dst++ = *src++;
 }
-
+//已解？
 int has_solved = 0;
 
 //void *call_solve(void* ptr)
 //{
 //  solve_mpc(&update, &problem_configuration);
 //}
-//safely copies problem data and starts the solver
+//safely copies problem data and starts the solver 
 void update_problem_data(double* p, double* v, double* q, double* w, double* r, double yaw, double* weights, double* state_trajectory, double alpha, int* gait)
 {
   mfp_to_flt(update.p,p,3);
@@ -104,7 +105,10 @@ void update_problem_data(double* p, double* v, double* q, double* w, double* r, 
   has_solved = 1;
 }
 
+
+//更新jcqp求解器设置
 void update_solver_settings(int max_iter, double rho, double sigma, double solver_alpha, double terminate, double use_jcqp) {
+	
   update.max_iterations = max_iter;
   update.rho = rho;
   update.sigma = sigma;
@@ -118,10 +122,11 @@ void update_solver_settings(int max_iter, double rho, double sigma, double solve
     update.use_jcqp = 0;
 }
 
+//更新问题参数和解
 void update_problem_data_floats(float* p, float* v, float* q, float* w,
                                 float* r, float yaw, float* weights,
                                 float* state_trajectory, float alpha, int* gait)
-{
+{//将传入参数复制给类变量
   update.alpha = alpha;
   update.yaw = yaw;
   mint_to_u8(update.gait,gait,4*problem_configuration.horizon);
@@ -132,7 +137,9 @@ void update_problem_data_floats(float* p, float* v, float* q, float* w,
   memcpy((void*)update.r,(void*)r,sizeof(float)*12);
   memcpy((void*)update.weights,(void*)weights,sizeof(float)*12);
   memcpy((void*)update.traj,(void*)state_trajectory, sizeof(float) * 12 * problem_configuration.horizon);
+   //解mpc
   solve_mpc(&update, &problem_configuration);
+  //已解
   has_solved = 1;
 
 }
@@ -141,6 +148,7 @@ void update_x_drag(float x_drag) {
   update.x_drag = x_drag;
 }
 
+//获取索引号的结果
 double get_solution(int index)
 {
   if(!has_solved) return 0.f;

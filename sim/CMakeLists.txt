@@ -16,13 +16,11 @@ endif()
 set(CMAKE_AUTOMOC ON)
 # Create code from a list of Qt designer ui files
 set(CMAKE_AUTOUIC ON)
-
-find_package(Qt5Core CONFIG REQUIRED PATHS /opt/Qt5.10.0/5.10.0/gcc_64/lib/cmake  NO_DEFAULT_PATH)
-find_package(Qt5Widgets CONFIG REQUIRED PATHS /opt/Qt5.10.0/5.10.0/gcc_64/lib/cmake  NO_DEFAULT_PAT)
+find_package(Qt5Core CONFIG REQUIRED)
+find_package(Qt5Widgets CONFIG REQUIRED)
 get_target_property(QtCore_location Qt5::Core LOCATION)
 message(STATUS ${QtCore_location})
-
-find_package(Qt5Gui CONFIG REQUIRED PATHS /opt/Qt5.10.0/5.10.0/gcc_64/lib/cmake / NO_DEFAULT_PATH)
+find_package(Qt5Gui CONFIG REQUIRED)
 
 set(QOBJECT_HEADERS
         include/Graphics3D.h
@@ -43,8 +41,8 @@ include_directories("../third-party/ParamHandler")
 include_directories(${CMAKE_BINARY_DIR})
 file(GLOB sources "src/*.cpp")
 
-find_package(Qt5Core COMPONENTS QtGamepad REQUIRED PATHS /opt/Qt5.10.0/5.10.0/gcc_64/lib/cmake  NO_DEFAULT_PATH) 
-find_package(Qt5Gamepad REQUIRED PATHS /opt/Qt5.10.0/5.10.0/gcc_64/lib/cmake / NO_DEFAULT_PATH)
+find_package(Qt5Core COMPONENTS QtGamepad REQUIRED)
+find_package(Qt5Gamepad REQUIRED)
 
 set(OpenGL_GL_PREFERENCE LEGACY)
 

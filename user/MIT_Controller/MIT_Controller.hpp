@@ -24,7 +24,8 @@ public:
 
 protected:
   ControlFSM<float>* _controlFSM;
-  // Gait Scheduler controls the nominal contact schedule for the feet
+  // Gait Scheduler controls the nominal contact schedule for the feet 
+  //步态调度器控制脚的名义接触时间表
   GaitScheduler<float>* _gaitScheduler;
   MIT_UserParameters userParameters;
 

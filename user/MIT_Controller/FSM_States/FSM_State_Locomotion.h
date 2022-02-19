@@ -21,20 +21,23 @@ class FSM_State_Locomotion : public FSM_State<T> {
   // Run the normal behavior for the state
   void run();
 
-  // Checks for any transition triggers
+  // Checks for any transition triggers 检查任何转换触发器
   FSM_StateName checkTransition();
 
-  // Manages state specific transitions
+  // Manages state specific transitions 管理特定于状态的转换
   TransitionData<T> transition();
 
   // Behavior to be carried out when exiting a state
   void onExit();
 
  private:
-  // Keep track of the control iterations
+  // Keep track of the control iterations 跟踪控制迭代
   int iter = 0;
+  //MPC控制器
   ConvexMPCLocomotion* cMPCOld;
+  //WBC控制器
   WBC_Ctrl<T> * _wbc_ctrl;
+  //移动控制器数据
   LocomotionCtrlData<T> * _wbc_data;
 
   // Parses contact specific controls to the leg controller

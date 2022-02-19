@@ -52,15 +52,15 @@ class Task {
   virtual bool _AdditionalUpdate() = 0;
 
   bool b_set_task_;
-  size_t dim_task_;
+  size_t dim_task_;//任务维度 3维
 
-  DVec<T> op_cmd_;
-  DVec<T> JtDotQdot_;
-  DMat<T> Jt_;
+  DVec<T> op_cmd_;//操作命令 3维
+  DVec<T> JtDotQdot_;//任务雅可比导q导
+  DMat<T> Jt_;//任务雅可比
 
-  DVec<T> pos_err_;
-  DVec<T> vel_des_;
-  DVec<T> acc_des_;
+  DVec<T> pos_err_; //3维
+  DVec<T> vel_des_; //3维
+  DVec<T> acc_des_; //3维
 };
 
 #endif

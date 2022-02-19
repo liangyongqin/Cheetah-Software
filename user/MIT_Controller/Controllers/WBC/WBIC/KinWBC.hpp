@@ -5,6 +5,7 @@
 #include <WBC/Task.hpp>
 #include <vector>
 
+//应该是运动学WBC
 template <typename T>
 class KinWBC {
  public:
@@ -22,9 +23,9 @@ class KinWBC {
   void _PseudoInverse(const DMat<T> J, DMat<T>& Jinv);
   void _BuildProjectionMatrix(const DMat<T>& J, DMat<T>& N);
 
-  double threshold_;
-  size_t num_qdot_;
-  size_t num_act_joint_;
-  DMat<T> I_mtx;
+  double threshold_;//伪逆阈值
+  size_t num_qdot_;//状态变量数 18 
+  size_t num_act_joint_;//活动关节数 12
+  DMat<T> I_mtx;//单位阵
 };
 #endif

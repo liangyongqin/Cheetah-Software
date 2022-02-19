@@ -9,9 +9,9 @@
 #include "Controllers/FootSwingTrajectory.h"
 
 /*!
- * Compute foot swing trajectory with a bezier curve
- * @param phase : How far along we are in the swing (0 to 1)
- * @param swingTime : How long the swing should take (seconds)
+ * Compute foot swing trajectory with a bezier curve 用贝塞尔曲线计算足部摆动轨迹
+ * @param phase : How far along we are in the swing (0 to 1) 在整个摆动过程百分比(从0到1)
+ * @param swingTime : How long the swing should take (seconds) 摆动需要多久
  */
 template <typename T>
 void FootSwingTrajectory<T>::computeSwingTrajectoryBezier(T phase, T swingTime) {

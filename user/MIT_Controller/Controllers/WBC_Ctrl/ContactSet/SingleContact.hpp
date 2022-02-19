@@ -16,7 +16,7 @@ class SingleContact : public ContactSpec<T> {
  protected:
   T _max_Fz;
   int _contact_pt;
-  int _dim_U;
+  int _dim_U; 
 
   virtual bool _UpdateJc();
   virtual bool _UpdateJcDotQdot();

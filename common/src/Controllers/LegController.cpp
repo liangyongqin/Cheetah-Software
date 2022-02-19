@@ -1,10 +1,11 @@
-/*! @file LegController.cpp
- *  @brief Common Leg Control Interface
+/*! @file LegController.h
+ *  @brief Common Leg Control Interface and Leg Control Algorithms 常用的腿部控制接口和腿部控制算法
  *
- *  Implements low-level leg control for Mini Cheetah and Cheetah 3 Robots
- *  Abstracts away the difference between the SPIne and the TI Boards
+ *  Implements low-level leg control for Mini Cheetah and Cheetah 3 Robots 为小型猎豹和猎豹3型机器人实现低水平的腿部控制
+ *  Abstracts away the difference between the SPIne and the TI Boards (the low level leg control boards)
  *  All quantities are in the "leg frame" which has the same orientation as the
- * body frame, but is shifted so that 0,0,0 is at the ab/ad pivot (the "hip
+ * 	body frame, but is shifted so that 0,0,0 is at the ab/ad pivot (the "hip
+ * 所有的量都在“腿坐标系”中，与身体坐标系有相同的方向，但是移动了，使得0,0,0在ab/ad轴上(“髋坐标系”)。
  * frame").
  */
 
@@ -12,6 +13,8 @@
 
 /*!
  * Zero the leg command so the leg will not output torque
+ * 腿的失力命令
+ * 全部设零
  */
 template <typename T>
 void LegControllerCommand<T>::zero() {
@@ -29,6 +32,7 @@ void LegControllerCommand<T>::zero() {
 
 /*!
  * Zero the leg data
+ * 腿部数据清零
  */
 template <typename T>
 void LegControllerData<T>::zero() {
@@ -44,6 +48,7 @@ void LegControllerData<T>::zero() {
  * Zero all leg commands.  This should be run *before* any control code, so if
  * the control code is confused and doesn't change the leg command, the legs
  * won't remember the last command.
+ * 腿部控制命令清零，应运行在任何控制代码之前，否则控制代码混乱，控制命令不会改变，腿部不会记忆上次命令
  */
 template <typename T>
 void LegController<T>::zeroCommand() {
@@ -58,6 +63,9 @@ void LegController<T>::zeroCommand() {
  * emergency damp command using the given gain. For the mini-cheetah, the edamp
  * gain is Nm/(rad/s), and for the Cheetah 3 it is N/m. You still must call
  * updateCommand for this command to end up in the low-level command data!
+ * 设置腿为edamp。这将覆盖所有命令数据，并使用给定的增益生成紧急阻尼命令。
+ * 小型猎豹的edamp增益为Nm/(rad/s)，猎豹3的edamp增益为N/m。
+ * 您仍然必须调用updateCommand才能使此命令最终出现在低级命令数据中!
  */
 template <typename T>
 void LegController<T>::edampCommand(RobotType robot, T gain) {
@@ -79,36 +87,40 @@ void LegController<T>::edampCommand(RobotType robot, T gain) {
 
 /*!
  * Update the "leg data" from a SPIne board message
+ * 从spine卡 更新腿部信息
  */
 template <typename T>
 void LegController<T>::updateData(const SpiData* spiData) {
   for (int leg = 0; leg < 4; leg++) {
-    // q:
+    // q: 关节角
     datas[leg].q(0) = spiData->q_abad[leg];
     datas[leg].q(1) = spiData->q_hip[leg];
     datas[leg].q(2) = spiData->q_knee[leg];
 
-    // qd
+    // qd 关节角速度？
     datas[leg].qd(0) = spiData->qd_abad[leg];
     datas[leg].qd(1) = spiData->qd_hip[leg];
     datas[leg].qd(2) = spiData->qd_knee[leg];
 
-    // J and p
+    // J and p 雅可比和足端位置
     computeLegJacobianAndPosition<T>(_quadruped, datas[leg].q, &(datas[leg].J),
                                      &(datas[leg].p), leg);
 
-    // v
+    // v 足端速度
     datas[leg].v = datas[leg].J * datas[leg].qd;
   }
 }
 
 /*!
- * Update the "leg data" from a TI Board message
+ * Update the "leg data" from a TI Board message cheetah3使用
+ * 从TI卡 更新腿部信息
+ * 具体如上
  */
 template <typename T>
 void LegController<T>::updateData(const TiBoardData* tiBoardData) {
   for (int leg = 0; leg < 4; leg++) {
     for (int joint = 0; joint < 3; joint++) {
+		//datas 是LegControllerData
       datas[leg].q(joint) = tiBoardData[leg].q[joint];
       datas[leg].qd(joint) = tiBoardData[leg].dq[joint];
       datas[leg].p(joint) = tiBoardData[leg].position[joint];
@@ -126,26 +138,27 @@ void LegController<T>::updateData(const TiBoardData* tiBoardData) {
 
 /*!
  * Update the "leg command" for the SPIne board message
+ * 向控制器发送控制命令
  */
 template <typename T>
 void LegController<T>::updateCommand(SpiCommand* spiCommand) {
   for (int leg = 0; leg < 4; leg++) {
-    // tauFF
+    // tauFF 获得从控制器来的力矩
     Vec3<T> legTorque = commands[leg].tauFeedForward;
 
-    // forceFF
+    // forceFF 获得从控制器来的力矩
     Vec3<T> footForce = commands[leg].forceFeedForward;
 
-    // cartesian PD
+    // cartesian PD 直角坐标下pd
     footForce +=
         commands[leg].kpCartesian * (commands[leg].pDes - datas[leg].p);
     footForce +=
         commands[leg].kdCartesian * (commands[leg].vDes - datas[leg].v);
 
-    // Torque
+    // Torque 足力转换成力矩
     legTorque += datas[leg].J.transpose() * footForce;
 
-    // set command:
+    // set command: 命令设置 设置力矩
     spiCommand->tau_abad_ff[leg] = legTorque(0);
     spiCommand->tau_hip_ff[leg] = legTorque(1);
     spiCommand->tau_knee_ff[leg] = legTorque(2);
@@ -186,14 +199,17 @@ constexpr float CHEETAH_3_ZERO_OFFSET[4][3] = {{1.f, 4.f, 7.f},
  */
 template <typename T>
 void LegController<T>::updateCommand(TiBoardCommand* tiBoardCommand) {
+	//发送四腿力矩
   for (int leg = 0; leg < 4; leg++) {
     Vec3<T> tauFF = commands[leg].tauFeedForward.template cast<T>();
 
 
-    for (int joint = 0; joint < 3; joint++) {
+    for (int joint = 0; joint < 3; joint++) {//每个关节参数
       tiBoardCommand[leg].kp[joint] = commands[leg].kpCartesian(joint, joint);
       tiBoardCommand[leg].kd[joint] = commands[leg].kdCartesian(joint, joint);
+	  
       tiBoardCommand[leg].tau_ff[joint] = tauFF[joint];
+	  
       tiBoardCommand[leg].position_des[joint] = commands[leg].pDes[joint];
       tiBoardCommand[leg].velocity_des[joint] = commands[leg].vDes[joint];
       tiBoardCommand[leg].force_ff[joint] =
@@ -205,12 +221,12 @@ void LegController<T>::updateCommand(TiBoardCommand* tiBoardCommand) {
       tiBoardCommand[leg].zero_offset[joint] = CHEETAH_3_ZERO_OFFSET[leg][joint];
     }
 
-    // please only send 1 or 0 here or the robot will explode.
-    tiBoardCommand[leg].enable = _legsEnabled ? 1 : 0;
-    tiBoardCommand[leg].max_torque = _maxTorque;
-    tiBoardCommand[leg].zero = _zeroEncoders ? 1 : 0;
+    // please only send 1 or 0 here or the robot will explode. 请只发送1或0在这里，否则机器人会爆炸。
+    tiBoardCommand[leg].enable = _legsEnabled ? 1 : 0;//腿使能 
+    tiBoardCommand[leg].max_torque = _maxTorque;//最大力矩
+    tiBoardCommand[leg].zero = _zeroEncoders ? 1 : 0;//编码器归零
     if(_calibrateEncoders) {
-      tiBoardCommand[leg].enable = _calibrateEncoders + 1;
+      tiBoardCommand[leg].enable = _calibrateEncoders + 1;//标定 
     }
 
     if(_zeroEncoders) {

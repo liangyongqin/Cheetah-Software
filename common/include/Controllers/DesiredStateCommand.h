@@ -3,6 +3,9 @@
  * @brief Logic to convert a joystick command into a desired trajectory for the robot
  *
  * This will generate a state trajectory which can easily be used for model predictive controllers
+ 将操纵杆命令转换为机器人所需轨迹的逻辑
+*
+这将生成一个状态轨迹，很容易用于模型预测控制器
  */
 
 /*========================= Gamepad Control ==========================*/
@@ -31,12 +34,12 @@ struct DesiredStateData {
   // Zero out all of the data
   void zero();
 
-  // Instantaneous desired state command
+  // Instantaneous desired state command 瞬时期望状态指令
   Vec12<T> stateDes;
 
   Vec12<T> pre_stateDes;
 
-  // Desired future state trajectory (for up to 10 timestep MPC)
+  // Desired future state trajectory (for up to 10 timestep MPC) 期望的未来状态轨迹(最多10个时间步长MPC)
   Eigen::Matrix<T, 12, 10> stateTrajDes;
 };
 
@@ -47,7 +50,7 @@ template <typename T>
 class DesiredStateCommand {
 public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-  // Initialize with the GamepadCommand struct
+  // Initialize with the GamepadCommand struct 使用Gamepad Command结构初始化
   DesiredStateCommand(GamepadCommand* command, rc_control_settings* rc_command,
                       RobotControlParameters* _parameters,
                       StateEstimate<T>* sEstimate, float _dt) {

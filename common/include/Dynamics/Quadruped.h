@@ -1,5 +1,5 @@
 /*! @file Quadruped.h
- *  @brief Data structure containing parameters for quadruped robot
+ *  @brief Data structure containing parameters for quadruped robot 包含四足机器人参数的数据结构
  *
  *  This file contains the Quadruped class.  This stores all the parameters for
  * a quadruped robot.  There are utility functions to generate Quadruped objects
@@ -20,7 +20,7 @@
 
 
 /*!
- * Basic parameters for a cheetah-shaped robot
+ * Basic parameters for a cheetah-shaped robot 机器人基本参数
  */
 namespace cheetah {
 constexpr size_t num_act_joint = 12;
@@ -48,9 +48,9 @@ constexpr size_t HL_abd = 1;  // Hind Left Abduction
 using std::vector;
 
 /*!
- * Representation of a quadruped robot's physical properties.
+ * Representation of a quadruped robot's physical properties. 四足机器人物理特性的表征
  *
- * When viewed from the top, the quadruped's legs are:
+ * When viewed from the top, the quadruped's legs are: 从上往下看，四足动物的腿是
  *
  * FRONT
  * 2 1   RIGHT
@@ -70,7 +70,7 @@ class Quadruped {
   T _motorTauMax;
   T _jointDamping, _jointDryFriction;
   SpatialInertia<T> _abadInertia, _hipInertia, _kneeInertia, _abadRotorInertia,
-      _hipRotorInertia, _kneeRotorInertia, _bodyInertia;
+      _hipRotorInertia, _kneeRotorInertia, _bodyInertia;//空间惯性
   Vec3<T> _abadLocation, _abadRotorLocation, _hipLocation, _hipRotorLocation,
       _kneeLocation, _kneeRotorLocation;
   FloatingBaseModel<T> buildModel();
@@ -78,7 +78,7 @@ class Quadruped {
   std::vector<ActuatorModel<T>> buildActuatorModels();
 
   /*!
-   * Get if the i-th leg is on the left (+) or right (-) of the robot.
+   * Get if the i-th leg is on the left (+) or right (-) of the robot. 判断第i条腿是在机器人的左边(+)还是右边(-)。
    * @param leg : the leg index
    * @return The side sign (-1 for right legs, +1 for left legs)
    */
@@ -89,7 +89,7 @@ class Quadruped {
   }
 
   /*!
-   * Get location of the hip for the given leg in robot frame
+   * Get location of the hip for the given leg in robot frame 在机器人框架中获取给定腿的臀部位置
    * @param leg : the leg index
    */
   Vec3<T> getHipLocation(int leg) {
