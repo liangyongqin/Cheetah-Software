@@ -1,6 +1,6 @@
 #/bin/bash
 
-QT_VER="$(ls /opt/Qt5.10.0/5.10.0/gcc_64/lib | grep 5 -m1)"
+QT_VER="$(ls /opt/Qt/5.15.2/gcc_64/lib/cmake | grep 5 -m1)"
 
-printf "/opt/Qt5.10.0/5.10.0/gcc_64/lib"
+printf "/opt/Qt/5.15.2/gcc_64/lib"
 
